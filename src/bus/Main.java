@@ -87,7 +87,7 @@ public class Main {
             System.out.println("4. Xóa sản phẩm theo ID");
             System.out.println("5. Tìm kiếm theo Brand");
             System.out.println("6. Tìm kiếm điện theo Khoảng giá");
-            System.out.println("7. Tìm kiếm theo tồn kho");
+            System.out.println("7. Tìm kiếm theo tên sp kèm Tồn kho");
             System.out.println("8. Quay lại menu chính");
             System.out.print("Chọn: ");
             try {
@@ -113,26 +113,56 @@ public class Main {
                         System.out.println("Thêm thành công!");
                         break;
 
-                    case 3: // Cập nhật
-                        System.out.print("Nhập ID cần sửa: "); int uId = Integer.parseInt(sc.nextLine());
+                    case 3: // Cập nhật thông tin sản phẩm (Đã sửa lỗi đặc tả)
+                        Product currentProduct = null;
+                        int uId = -1;
+                        while (true) {
+                            System.out.print("Nhập ID cần sửa: ");
+                            uId = Integer.parseInt(sc.nextLine());
+                            currentProduct = pDao.selectById(uId);
+                            if (currentProduct != null) {
+                                break;
+                            } else {
+                                System.out.println("Lỗi: Không tìm thấy sản phẩm có ID này. Vui lòng nhập lại!");
+                            }
+                        }
+
+                        System.out.println("\n--- Thông tin hiện tại của sản phẩm ---");
+                        System.out.println("Tên: " + currentProduct.getProduct_name() + " | Brand: " + currentProduct.getBrand() + " | Giá: " + currentProduct.getPrice() + " | Kho: " + currentProduct.getStock());
+                        System.out.println("----------------------------------------");
+
                         System.out.print("Nhập Tên mới: "); String uName = sc.nextLine();
                         System.out.print("Nhập Brand mới: "); String uBrand = sc.nextLine();
                         System.out.print("Nhập Giá mới: "); double uPrice = Double.parseDouble(sc.nextLine());
                         System.out.print("Nhập Kho mới: "); int uStock = Integer.parseInt(sc.nextLine());
+
                         pDao.update(new Product(uId, uName, uBrand, uPrice, uStock));
                         System.out.println("Cập nhật thành công!");
                         break;
 
-                    case 4: // Xóa sản phẩm theo ID1
-
+                    case 4: // Xóa sản phẩm theo ID (Đã sửa lỗi đặc tả)
                         System.out.print("Nhập ID sản phẩm cần xóa: ");
                         int dId = Integer.parseInt(sc.nextLine());
 
                         try {
-                            pDao.delete(dId);
-                            System.out.println("Đã xóa thành công sản phẩm");
+                            Product prodToDelete = pDao.selectById(dId);
+                            if (prodToDelete == null) {
+                                System.out.println("Lỗi: Không tìm thấy sản phẩm có ID phù hợp!");
+                            } else {
+                                System.out.println("--- Thông tin sản phẩm muốn xóa ---");
+                                System.out.println("Tên: " + prodToDelete.getProduct_name() + " | Giá: " + prodToDelete.getPrice());
+                                System.out.print("Bạn có chắc chắn muốn xóa không? (Y/N): ");
+                                String confirm = sc.nextLine().trim();
+
+                                if (confirm.equalsIgnoreCase("Y")) {
+                                    pDao.delete(dId);
+                                    System.out.println("Xóa thành công sản phẩm khỏi hệ thống!");
+                                } else {
+                                    System.out.println("Đã hủy thao tác xóa.");
+                                }
+                            }
                         } catch (Exception e) {
-                            System.out.println(e.getMessage());
+                            System.out.println("Lỗi: " + e.getMessage());
                         }
                         break;
 
@@ -140,7 +170,6 @@ public class Main {
                         System.out.print("Nhập Brand cần tìm: ");
                         String bName = sc.nextLine();
                         ArrayList<Product> brandRes = pDao.searchByBrand(bName);
-                        System.out.println("Kết quả tìm kiếm theo hãng '" + bName + "':");
                         for (Product p : brandRes) {
                             System.out.println(p.getProduct_id() + " | " + p.getProduct_name() + " | " + p.getPrice() + " [Kho: " + p.getStock() + "]");
                         }
@@ -156,11 +185,21 @@ public class Main {
                         }
                         break;
 
-                    case 7: // Tìm kiếm theo tồn kho
-                        ArrayList<Product> availRes = pDao.searchAvailableProducts();
-                        System.out.println("Danh sách điện thoại còn hàng trong kho (Stock > 0):");
-                        for (Product p : availRes) {
-                            System.out.println(p.getProduct_id() + " | " + p.getProduct_name() + " | " + p.getBrand() + " | Số lượng: " + p.getStock());
+                    case 7: // Tìm kiếm theo tên sản phẩm kèm Số lượng tồn kho (Đã sửa lỗi đặc tả)
+                        System.out.print("Nhập tên sản phẩm cần tìm: ");
+                        String keyword = sc.nextLine().trim();
+                        ArrayList<Product> results = pDao.searchByNameWithStock(keyword);
+
+                        if (results.isEmpty()) {
+                            System.out.println("Không tìm thấy sản phẩm nào chứa từ khóa: " + keyword);
+                        } else {
+                            System.out.println("\n================ KẾT QUẢ TÌM KIẾM ================");
+                            System.out.printf("%-5s | %-25s | %-12s | %-12s | %-10s\n", "ID", "Tên Sản Phẩm", "Hãng", "Giá Bán", "Số Lượng Tồn");
+                            System.out.println("--------------------------------------------------------------------------------");
+                            for (Product p : results) {
+                                System.out.printf("%-5d | %-25s | %-12s | %-12.2f | %-10d\n", p.getProduct_id(), p.getProduct_name(), p.getBrand(), p.getPrice(), p.getStock());
+                            }
+                            System.out.println("==================================================");
                         }
                         break;
 
@@ -204,19 +243,63 @@ public class Main {
                         cDao.insert(new Customer(id, name, phone, email, addr));
                         System.out.println("Thêm thành công!");
                         break;
-                    case 3:
-                        System.out.print("ID Khách cần sửa: "); int uId = Integer.parseInt(sc.nextLine());
+
+                    case 3: // Cập nhật thông tin khách hàng (Đã sửa lỗi đặc tả)
+                        Customer currentCustomer = null;
+                        int cuId = -1;
+                        while (true) {
+                            System.out.print("ID Khách cần sửa: ");
+                            cuId = Integer.parseInt(sc.nextLine());
+                            currentCustomer = cDao.selectById(cuId);
+                            if (currentCustomer != null) {
+                                break;
+                            } else {
+                                System.out.println("Lỗi: Không tìm thấy khách hàng có ID này. Vui lòng nhập lại!");
+                            }
+                        }
+
+                        System.out.println("\n--- Thông tin hiện tại của khách hàng ---");
+                        System.out.println("Tên: " + currentCustomer.getCustomer_name() + " | SĐT: " + currentCustomer.getPhone() + " | Email: " + currentCustomer.getEmail());
+                        System.out.println("----------------------------------------");
+
                         System.out.print("Tên mới: "); String uName = sc.nextLine();
                         System.out.print("Số ĐT mới: "); String uPhone = sc.nextLine();
                         System.out.print("Email mới: "); String uEmail = sc.nextLine();
                         System.out.print("Địa chỉ mới: "); String uAddr = sc.nextLine();
-                        cDao.update(new Customer(uId, uName, uPhone, uEmail, uAddr));
+
+                        cDao.update(new Customer(cuId, uName, uPhone, uEmail, uAddr));
                         System.out.println("Cập nhật thành công!");
                         break;
-                    case 4:
-                        System.out.print("ID Khách cần xóa: "); int dId = Integer.parseInt(sc.nextLine());
-                        cDao.delete(dId);
-                        System.out.println("Xóa thành công!");
+
+                    case 4: // Xóa khách hàng theo ID )
+                        Customer deleteCustomer = null;
+                        int dId = -1;
+                        while (true) {
+                            System.out.print("ID Khách cần xóa: ");
+                            dId = Integer.parseInt(sc.nextLine());
+                            deleteCustomer = cDao.selectById(dId);
+                            if (deleteCustomer != null) {
+                                break;
+                            } else {
+                                System.out.println("Lỗi: Không tìm thấy khách hàng có ID này. Vui lòng nhập lại!");
+                            }
+                        }
+
+                        System.out.println("\n--- Thông tin khách hàng muốn xóa ---");
+                        System.out.println("Tên: " + deleteCustomer.getCustomer_name() + " | SĐT: " + deleteCustomer.getPhone());
+                        System.out.print("Bạn có chắc chắn muốn xóa không? (Y/N): ");
+                        String confirm = sc.nextLine().trim();
+
+                        if (confirm.equalsIgnoreCase("Y")) {
+                            int deleteCount = cDao.delete(dId);
+                            if (deleteCount > 0) {
+                                System.out.println("Xóa thành công khách hàng!");
+                            } else {
+                                System.out.println("Xóa thất bại. Khách hàng có thể đang tồn tại trong hóa đơn.");
+                            }
+                        } else {
+                            System.out.println("Đã hủy thao tác xóa khách hàng.");
+                        }
                         break;
                 }
             } catch (Exception e) { System.out.println("Lỗi nhập liệu!"); }
@@ -236,10 +319,10 @@ public class Main {
             System.out.print("Chọn: ");
             try {
                 int choice = Integer.parseInt(sc.nextLine());
-                if (choice == 4) break; // Thoát về menu chính
+                if (choice == 4) break;
 
                 switch (choice) {
-                    case 1: // Hiển thị danh sách
+                    case 1:
                         ArrayList<Invoice> list = iDao.selectAll();
                         System.out.println("Mã HĐ | Mã Khách | Ngày lập | Tổng tiền");
                         for (Invoice i : list) {
@@ -247,36 +330,32 @@ public class Main {
                         }
                         break;
 
-                    case 2: // Thêm mới hóa đơn tổng + nhập chi tiết mặt hàng
+                    case 2:
                         System.out.print("Nhập mã hóa đơn mới: "); int iId = Integer.parseInt(sc.nextLine());
                         System.out.print("Nhập mã khách hàng: "); int cId = Integer.parseInt(sc.nextLine());
                         System.out.print("Nhập tổng trị giá hóa đơn: "); double total = Double.parseDouble(sc.nextLine());
 
-                        // 1. Lưu vào bảng Invoice
                         Invoice invoice = new Invoice(iId, cId, new Timestamp(System.currentTimeMillis()), total);
                         iDao.insert(invoice);
 
-                        // 2. Lưu vào InvoiceDetails
                         System.out.println("--- NHẬP CHI TIẾT SẢN PHẨM MUA ---");
                         while (true) {
                             System.out.print("Nhập mã sản phẩm mua (hoặc nhập 0 để kết thúc): ");
                             int pId = Integer.parseInt(sc.nextLine());
-                            if (pId == 0) break; // nhập 0 để hoàn thành hóa đơn
+                            if (pId == 0) break;
 
                             System.out.print("Nhập số lượng mua: ");
                             int qty = Integer.parseInt(sc.nextLine());
                             System.out.print("Nhập đơn giá tại thời điểm bán: ");
-                            Object uPrice = Double.parseDouble(sc.nextLine());
+                            double uPrice = Double.parseDouble(sc.nextLine());
 
-                            // Gọi hàm lưu vào bảng InvoiceDetails
-                            iDao.insertDetail(iId, pId, qty, (double) uPrice);
+                            iDao.insertDetail(iId, pId, qty, uPrice);
                             System.out.println("-> Đã thêm sản phẩm vào chi tiết hóa đơn.");
                         }
-
                         System.out.println("Lập hóa đơn và lưu chi tiết thành công!");
                         break;
 
-                    case 3: // Kích hoạt Menu con Tìm kiếm hóa đơn
+                    case 3:
                         menuSearchInvoice(iDao);
                         break;
 
@@ -289,7 +368,6 @@ public class Main {
         }
     }
 
-    // --- MENU CON TÌM KIẾM HÓA ĐƠN HOÀN CHỈNH ---
     private static void menuSearchInvoice(InvoiceDao iDao) {
         while (true) {
             System.out.println("\n--- MENU TÌM KIẾM HÓA ĐƠN ---");
@@ -299,10 +377,10 @@ public class Main {
             System.out.print("Chọn: ");
             try {
                 int subChoice = Integer.parseInt(sc.nextLine());
-                if (subChoice == 3) break; // Thoát khỏi menu con
+                if (subChoice == 3) break;
 
                 switch (subChoice) {
-                    case 1: // Tìm theo tên khách hàng
+                    case 1:
                         System.out.print("Nhập tên khách hàng cần tìm: ");
                         String cName = sc.nextLine();
                         ArrayList<Invoice> resByName = iDao.searchByCustomerName(cName);
@@ -317,12 +395,10 @@ public class Main {
                         }
                         break;
 
-                    case 2: // Tìm theo Ngày/Tháng/Năm
+                    case 2:
                         System.out.print("Nhập ngày cần tìm hóa đơn (Định dạng YYYY-MM-DD): ");
                         String targetDate = sc.nextLine();
-
                         ArrayList<Invoice> resByDate = iDao.searchByDate(targetDate);
-
                         System.out.println("\nDanh sách hóa đơn tìm thấy trong ngày " + targetDate + ":");
                         if (resByDate.isEmpty()) {
                             System.out.println("Không có hóa đơn nào được lập trong ngày này!");
@@ -356,10 +432,10 @@ public class Main {
             System.out.print("Chọn: ");
             try {
                 int choice = Integer.parseInt(sc.nextLine());
-                if (choice == 4) break; // Thoát về menu chính
+                if (choice == 4) break;
 
                 switch (choice) {
-                    case 1: // Theo Ngày
+                    case 1:
                         System.out.print("Nhập ngày cần thống kê (Định dạng YYYY-MM-DD): ");
                         String dayInput = sc.nextLine();
                         double dayRevenue = iDao.getRevenueByDay(dayInput);
@@ -368,7 +444,7 @@ public class Main {
                         System.out.println("---------------------------------------");
                         break;
 
-                    case 2: // Theo Tháng
+                    case 2:
                         System.out.print("Nhập tháng (1-12): ");
                         int month = Integer.parseInt(sc.nextLine());
                         System.out.print("Nhập năm (YYYY): ");
@@ -379,7 +455,7 @@ public class Main {
                         System.out.println("---------------------------------------");
                         break;
 
-                    case 3: // Theo Năm
+                    case 3:
                         System.out.print("Nhập năm cần thống kê (YYYY): ");
                         int year = Integer.parseInt(sc.nextLine());
                         double yearRevenue = iDao.getRevenueByYear(year);

@@ -30,7 +30,6 @@ public class ProductDao implements DaoInterface<Product> {
              PreparedStatement pst = con.prepareStatement(sql);
              ResultSet rs = pst.executeQuery()) {
             while (rs.next()) {
-                // Constructor 5 tham số khớp với Model của bạn
                 list.add(new Product(
                         rs.getInt("product_id"),
                         rs.getString("product_name"),
@@ -44,7 +43,7 @@ public class ProductDao implements DaoInterface<Product> {
     }
 
     @Override
-    public Product selectById(int id) { // Đã sửa từ String sang int cho đúng Interface
+    public Product selectById(int id) {
         String sql = "SELECT * FROM Product WHERE product_id = ?";
         try (Connection con = Main.getConnection();
              PreparedStatement pst = con.prepareStatement(sql)) {
@@ -87,17 +86,16 @@ public class ProductDao implements DaoInterface<Product> {
             pst.setInt(1, id);
             int rowsAffected = pst.executeUpdate();
 
-            // Nếu không có dòng nào bị xóa dưới MySQL -> ID không tồn tại
             if (rowsAffected == 0) {
                 throw new Exception("Không tìm thấy sản phẩm cần xóa");
             }
 
             return rowsAffected;
         } catch (SQLException e) {
-            // Nếu dính lỗi ràng buộc khóa ngoại (sản phẩm đã có trong hóa đơn)
             throw new Exception("Thất bại: Sản phẩm này đã dính vào hóa đơn/chi tiết hóa đơn, không thể xóa!");
         }
     }
+
     public ArrayList<Product> searchByBrand(String brandName) {
         ArrayList<Product> list = new ArrayList<>();
         String sql = "SELECT * FROM Product WHERE brand LIKE ?";
@@ -116,6 +114,7 @@ public class ProductDao implements DaoInterface<Product> {
         } catch (SQLException e) { e.printStackTrace(); }
         return list;
     }
+
     public ArrayList<Product> searchByPriceRange(double minPrice, double maxPrice) {
         ArrayList<Product> list = new ArrayList<>();
         String sql = "SELECT * FROM Product WHERE price BETWEEN ? AND ?";
@@ -135,20 +134,32 @@ public class ProductDao implements DaoInterface<Product> {
         } catch (SQLException e) { e.printStackTrace(); }
         return list;
     }
-    public ArrayList<Product> searchAvailableProducts() {
-        ArrayList<Product> list = new ArrayList<>();
-        String sql = "SELECT * FROM Product WHERE stock > 0";
-        try (Connection con = Main.getConnection();
-             PreparedStatement pst = con.prepareStatement(sql);
-             ResultSet rs = pst.executeQuery()) {
 
-            while (rs.next()) {
-                list.add(new Product(
-                        rs.getInt("product_id"), rs.getString("product_name"),
-                        rs.getString("brand"), rs.getDouble("price"), rs.getInt("stock")
-                ));
+    /**
+     * Hàm tìm kiếm theo tên sản phẩm kèm thông tin tồn kho
+     * Vá lỗi đoạn code thừa/thiếu bị hỏng ở cuối file cũ
+     */
+    public ArrayList<Product> searchByNameWithStock(String keyword) {
+        ArrayList<Product> list = new ArrayList<>();
+        String sql = "SELECT * FROM Product WHERE product_name LIKE ?";
+        try (Connection con = Main.getConnection();
+             PreparedStatement pst = con.prepareStatement(sql)) {
+
+            pst.setString(1, "%" + keyword + "%");
+            try (ResultSet rs = pst.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new Product(
+                            rs.getInt("product_id"),
+                            rs.getString("product_name"),
+                            rs.getString("brand"),
+                            rs.getDouble("price"),
+                            rs.getInt("stock")
+                    ));
+                }
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return list;
     }
 }
