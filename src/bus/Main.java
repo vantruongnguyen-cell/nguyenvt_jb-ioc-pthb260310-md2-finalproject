@@ -113,7 +113,7 @@ public class Main {
                         System.out.println("Thêm thành công!");
                         break;
 
-                    case 3: // Cập nhật thông tin sản phẩm (Đã sửa lỗi đặc tả)
+                    case 3: // Cập nhật thông tin sản phẩm
                         Product currentProduct = null;
                         int uId = -1;
                         while (true) {
@@ -140,7 +140,7 @@ public class Main {
                         System.out.println("Cập nhật thành công!");
                         break;
 
-                    case 4: // Xóa sản phẩm theo ID (Đã sửa lỗi đặc tả)
+                    case 4: // Xóa sản phẩm theo ID 
                         System.out.print("Nhập ID sản phẩm cần xóa: ");
                         int dId = Integer.parseInt(sc.nextLine());
 
@@ -185,7 +185,7 @@ public class Main {
                         }
                         break;
 
-                    case 7: // Tìm kiếm theo tên sản phẩm kèm Số lượng tồn kho (Đã sửa lỗi đặc tả)
+                    case 7: // Tìm kiếm theo tên sản phẩm kèm Số lượng tồn kho
                         System.out.print("Nhập tên sản phẩm cần tìm: ");
                         String keyword = sc.nextLine().trim();
                         ArrayList<Product> results = pDao.searchByNameWithStock(keyword);
@@ -244,7 +244,7 @@ public class Main {
                         System.out.println("Thêm thành công!");
                         break;
 
-                    case 3: // Cập nhật thông tin khách hàng (Đã sửa lỗi đặc tả)
+                    case 3: // Cập nhật thông tin khách hàng 
                         Customer currentCustomer = null;
                         int cuId = -1;
                         while (true) {
