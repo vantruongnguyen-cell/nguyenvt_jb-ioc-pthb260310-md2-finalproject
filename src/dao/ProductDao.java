@@ -135,10 +135,6 @@ public class ProductDao implements DaoInterface<Product> {
         return list;
     }
 
-    /**
-     * Hàm tìm kiếm theo tên sản phẩm kèm thông tin tồn kho
-     * Vá lỗi đoạn code thừa/thiếu bị hỏng ở cuối file cũ
-     */
     public ArrayList<Product> searchByNameWithStock(String keyword) {
         ArrayList<Product> list = new ArrayList<>();
         String sql = "SELECT * FROM Product WHERE product_name LIKE ?";
